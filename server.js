@@ -1,15 +1,11 @@
-const https = require("https");
-const fs = require("fs");
+const http = require("http");
 const { WebSocketServer } = require("ws");
 
-// TLS certificates (we'll generate these in the next step)
-const server = https.createServer({
-    cert: fs.readFileSync("cert.pem"),
-    key: fs.readFileSync("key.pem"),
-});
+const PORT = process.env.PORT || 3000;
 
+const server = http.createServer();
 const wss = new WebSocketServer({ server });
-const clients = new Map(); // socket -> name
+const clients = new Map();
 
 wss.on("connection", (ws) => {
     ws.send("Welcome! Type your name: ");
@@ -43,4 +39,4 @@ function broadcast(message, sender) {
     });
 }
 
-server.listen(443, () => console.log("Secure chat server running on port 443"));
+server.listen(PORT, () => console.log(`Chat server running on port ${PORT}`));
