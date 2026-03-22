@@ -1,0 +1,6 @@
+# TLS certificates
+cert.pem
+key.pem
+
+# Dependencies
+node_modules/
