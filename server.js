@@ -3,7 +3,22 @@ const { WebSocketServer } = require("ws");
 
 const PORT = process.env.PORT || 3000;
 
-const server = http.createServer();
+// Bootstrap config — edit this to update all clients
+const bootstrap = {
+    servers: [{ name: "Main Server", url: "wss://chat-app-production-1ce9.up.railway.app" }],
+    motd: "Welcome to the chat!",
+};
+
+const server = http.createServer((req, res) => {
+    if (req.url === "/bootstrap") {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(bootstrap));
+        return;
+    }
+    res.writeHead(404);
+    res.end();
+});
+
 const wss = new WebSocketServer({ server });
 const clients = new Map();
 
