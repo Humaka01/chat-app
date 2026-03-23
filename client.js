@@ -165,7 +165,7 @@ function startChat(serverUrl, motd, myName) {
     function drawChatHeader() {
         header(`Connected as ${myName}  •  ${onlineCount} online`);
         console.log(C.green + "  ✔  " + motd + C.reset);
-        console.log(C.gray + "  Type a message and press Enter.  /quit to leave.\n" + C.reset);
+        console.log(C.gray + "  Type a message and press Enter.  /exit to leave.\n" + C.reset);
         console.log(DIVIDER);
         console.log();
     }
@@ -188,7 +188,7 @@ function startChat(serverUrl, motd, myName) {
                 const text = input.trim();
                 process.stdout.moveCursor(0, -1);
                 process.stdout.clearLine(0);
-                if (text === "/quit") {
+                if (text === "/exit") {
                     print(C.gray + "  Disconnecting..." + C.reset);
                     ws.close();
                     rl.close();
