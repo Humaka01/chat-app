@@ -163,6 +163,7 @@ function askName() {
 function startChat(serverUrl, motd, myName) {
     let onlineCount = 1;
     let reconnectAttempts = 0;
+    let hasConnectedBefore = false;
     const MAX_RECONNECT_DELAY = 30000; // cap at 30 seconds
 
     function drawChatHeader() {
@@ -183,7 +184,12 @@ function startChat(serverUrl, motd, myName) {
 
         ws.on("open", () => {
             reconnectAttempts = 0; // reset on successful connection
-            drawChatHeader();
+            if (!hasConnectedBefore) {
+                drawChatHeader();
+                hasConnectedBefore = true;
+            } else {
+                print(C.green + "  ✔  Reconnected." + C.reset);
+            }
             ws.send(myName);
             prompt(myName);
 
