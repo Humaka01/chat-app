@@ -123,17 +123,44 @@ function selectServer(servers) {
 
 function askName() {
     return new Promise((resolve) => {
-        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        rl.question(C.magenta + C.bold + "  Choose a username: " + C.reset + C.white, (name) => {
-            rl.close();
-            process.stdout.write(C.reset);
-            resolve(name.trim());
-        });
+        function ask() {
+            const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+            rl.question(
+                C.magenta + C.bold + "  Choose a username: " + C.reset + C.white,
+                (name) => {
+                    rl.close();
+                    process.stdout.write(C.reset);
+                    const cleaned = name.trim();
+
+                    if (!cleaned) {
+                        print(C.red + "  Username cannot be blank." + C.reset);
+                        return ask();
+                    }
+                    if (cleaned.length < 2) {
+                        print(C.red + "  Username must be at least 2 characters." + C.reset);
+                        return ask();
+                    }
+                    if (cleaned.length > 20) {
+                        print(C.red + "  Username must be 20 characters or less." + C.reset);
+                        return ask();
+                    }
+                    if (!/^[a-zA-Z0-9_\-]+$/.test(cleaned)) {
+                        print(C.red + "  Only letters, numbers, _ and - are allowed." + C.reset);
+                        return ask();
+                    }
+
+                    resolve(cleaned);
+                },
+            );
+        }
+        ask();
     });
 }
 
 function startChat(serverUrl, motd, myName) {
     let onlineCount = 1;
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT_DELAY = 30000; // cap at 30 seconds
 
     function drawChatHeader() {
         header(`Connected as ${myName}  •  ${onlineCount} online`);
@@ -143,76 +170,85 @@ function startChat(serverUrl, motd, myName) {
         console.log();
     }
 
-    drawChatHeader();
+    function connect() {
+        const ws = new WebSocket(serverUrl);
 
-    const ws = new WebSocket(serverUrl);
-
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-    });
-
-    ws.on("open", () => {
-        ws.send(myName);
-        prompt(myName);
-
-        rl.on("line", (input) => {
-            const text = input.trim();
-            // erase the line the user just typed so it doesn't stay visible
-            process.stdout.moveCursor(0, -1);
-            process.stdout.clearLine(0);
-            if (text === "/quit") {
-                print(C.gray + "  Disconnecting..." + C.reset);
-                ws.close();
-                rl.close();
-                process.exit();
-            }
-            if (text) ws.send(text);
-            prompt(myName);
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
         });
-    });
 
-    ws.on("message", (raw) => {
-        let packet;
-        try {
-            packet = JSON.parse(raw);
-        } catch {
-            return;
-        }
-
-        if (packet.online !== undefined) onlineCount = packet.online;
-
-        if (packet.type === "welcome") return;
-
-        if (packet.type === "system") {
-            print(
-                `${timestamp()}  ${C.cyan}◈ ${packet.text}${C.reset}  ${C.gray}(${onlineCount} online)${C.reset}`,
-            );
+        ws.on("open", () => {
+            reconnectAttempts = 0; // reset on successful connection
+            drawChatHeader();
+            ws.send(myName);
             prompt(myName);
-            return;
-        }
 
-        if (packet.type === "message") {
-            const color = colorFor(packet.name);
-            const nameTag = C.bold + color + packet.name + C.reset;
+            rl.on("line", (input) => {
+                const text = input.trim();
+                process.stdout.moveCursor(0, -1);
+                process.stdout.clearLine(0);
+                if (text === "/quit") {
+                    print(C.gray + "  Disconnecting..." + C.reset);
+                    ws.close();
+                    rl.close();
+                    process.exit();
+                }
+                if (text) ws.send(text);
+                prompt(myName);
+            });
+        });
+
+        ws.on("message", (raw) => {
+            let packet;
+            try {
+                packet = JSON.parse(raw);
+            } catch {
+                return;
+            }
+
+            if (packet.online !== undefined) onlineCount = packet.online;
+            if (packet.type === "welcome") return;
+
+            if (packet.type === "system") {
+                print(
+                    `${timestamp()}  ${C.cyan}◈ ${packet.text}${C.reset}  ${C.gray}(${onlineCount} online)${C.reset}`,
+                );
+                prompt(myName);
+                return;
+            }
+
+            if (packet.type === "message") {
+                const color = colorFor(packet.name);
+                const nameTag = C.bold + color + packet.name + C.reset;
+                print(
+                    `${timestamp()}  ${nameTag}${C.gray}:${C.reset} ${C.white + packet.text + C.reset}`,
+                );
+                prompt(myName);
+                return;
+            }
+        });
+
+        ws.on("close", () => {
+            rl.close();
+            reconnectAttempts++;
+            const delay = Math.min(1000 * reconnectAttempts, MAX_RECONNECT_DELAY);
             print(
-                `${timestamp()}  ${nameTag}${C.gray}:${C.reset} ${C.white + packet.text + C.reset}`,
+                C.red +
+                    `\n  Connection lost. Reconnecting in ${delay / 1000}s... (attempt ${reconnectAttempts})` +
+                    C.reset,
             );
-            prompt(myName);
-            return;
-        }
-    });
+            setTimeout(connect, delay);
+        });
 
-    ws.on("close", () => {
-        print(C.red + "\n  Disconnected from server." + C.reset);
-        rl.close();
-        process.exit();
-    });
+        ws.on("error", (err) => {
+            rl.close();
+            // error event always fires before close, so just log it
+            print(C.red + `  Connection error: ${err.message}` + C.reset);
+        });
+    }
 
-    ws.on("error", (err) => {
-        print(C.red + "  Connection error: " + err.message + C.reset);
-        process.exit(1);
-    });
+    connect();
 }
 
 (async () => {
