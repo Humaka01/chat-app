@@ -7,12 +7,27 @@ A terminal-based encrypted chat application built with Node.js and WebSockets.
 
 ## Features
 
-- 🔒 TLS encrypted connections via WSS
+- 🔒 Encrypted transport via WSS (TLS)
 - 🎨 Per-user color coding
 - ⚡ Real-time messaging
 - 🖥️ Terminal-based UI with timestamps
 - 🔄 Auto-reconnect on connection loss
 - 📋 Server selection menu
+
+## Security Model
+
+SecureChat uses **transport-level encryption**, not end-to-end encryption.
+
+- All chat traffic is encrypted in transit using `wss://` (WebSocket over TLS)
+- The bootstrap endpoint is accessed over HTTPS for secure server discovery
+
+This means:
+
+- Data is protected against network interception (e.g. MITM on public Wi-Fi)
+- However, messages are **not end-to-end encrypted**
+- The server can access and read message contents
+
+If true end-to-end encryption is required, additional client-side encryption must be implemented.
 
 ## Getting Started
 
