@@ -4,6 +4,7 @@
     "main": "server.js",
     "scripts": {
         "start": "node server.js",
+        "build": "pkg client.js --targets node18-win-x64 --output dist/SecureChat.exe",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "repository": {
@@ -20,5 +21,8 @@
     "description": "End-to-end encrypted terminal chat",
     "dependencies": {
         "ws": "^8.20.0"
+    },
+    "devDependencies": {
+        "pkg": "^5.8.1"
     }
 }

@@ -107,7 +107,7 @@ function askName() {
 // Main chat loop
 function startChat(serverUrl, motd, name) {
     header(`Connected as ${name}`);
-    console.log(C.green + "  ✔ " + motd + C.reset);
+    console.log(C.green + "  ✔  " + motd + C.reset);
     console.log(C.gray + "  Type a message and press Enter.  /quit to leave.\n" + C.reset);
     console.log(divider);
     console.log();
