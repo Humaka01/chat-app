@@ -163,12 +163,38 @@ function askName() {
     });
 }
 
+function askNameInline(rl, callback) {
+    rl.question(C.magenta + C.bold + "  Choose a username: " + C.reset + C.white, (name) => {
+        process.stdout.write(C.reset);
+        const cleaned = name.trim();
+
+        if (!cleaned) {
+            print(C.red + "  Username cannot be blank." + C.reset);
+            return askNameInline(rl, callback);
+        }
+        if (cleaned.length < 2) {
+            print(C.red + "  Username must be at least 2 characters." + C.reset);
+            return askNameInline(rl, callback);
+        }
+        if (cleaned.length > 20) {
+            print(C.red + "  Username must be 20 characters or less." + C.reset);
+            return askNameInline(rl, callback);
+        }
+        if (!/^[a-zA-Z0-9_\-]+$/.test(cleaned)) {
+            print(C.red + "  Only letters, numbers, _ and - are allowed." + C.reset);
+            return askNameInline(rl, callback);
+        }
+
+        callback(cleaned);
+    });
+}
+
 function startChat(serverUrl, motd, _myName) {
     let myName = _myName;
     let onlineCount = 1;
     let reconnectAttempts = 0;
     let hasConnectedBefore = false;
-    const MAX_RECONNECT_DELAY = 30000; // cap at 30 seconds
+    const MAX_RECONNECT_DELAY = 30000;
 
     function drawChatHeader() {
         header(`Connected as ${myName}  •  ${onlineCount} online`);
@@ -187,7 +213,7 @@ function startChat(serverUrl, motd, _myName) {
         });
 
         ws.on("open", () => {
-            reconnectAttempts = 0; // reset on successful connection
+            reconnectAttempts = 0;
             if (!hasConnectedBefore) {
                 drawChatHeader();
                 hasConnectedBefore = true;
@@ -226,7 +252,7 @@ function startChat(serverUrl, motd, _myName) {
 
             if (packet.type === "name_taken") {
                 print(C.red + "  Username is already taken. Please choose another." + C.reset);
-                askName().then((newName) => {
+                askNameInline(rl, (newName) => {
                     myName = newName;
                     ws.send(newName);
                 });
@@ -266,7 +292,6 @@ function startChat(serverUrl, motd, _myName) {
 
         ws.on("error", (err) => {
             rl.close();
-            // error event always fires before close, so just log it
             print(C.red + `  Connection error: ${err.message}` + C.reset);
         });
     }
