@@ -3,10 +3,14 @@ const { WebSocketServer } = require("ws");
 
 const PORT = process.env.PORT || 3000;
 
-// Bootstrap config — edit this to update all clients
 const bootstrap = {
-    servers: [{ name: "Main Server", url: "wss://chat-app-production-1ce9.up.railway.app" }],
-    motd: "Welcome to the chat!",
+    servers: [
+        {
+            name: "⚡ Main Server  —  securechat.railway.app",
+            url: "wss://chat-app-production-1ce9.up.railway.app",
+        },
+    ],
+    motd: "🔒 All connections are TLS encrypted.",
 };
 
 const server = http.createServer((req, res) => {
@@ -20,36 +24,46 @@ const server = http.createServer((req, res) => {
 });
 
 const wss = new WebSocketServer({ server });
-const clients = new Map();
+const clients = new Map(); // ws -> name
+
+function broadcastSystem(message) {
+    const packet = JSON.stringify({ type: "system", text: message, online: clients.size });
+    console.log(message);
+    clients.forEach((_, client) => {
+        if (client.readyState === 1) client.send(packet);
+    });
+}
+
+function broadcastMessage(name, text) {
+    const packet = JSON.stringify({ type: "message", name, text, online: clients.size });
+    console.log(`${name}: ${text}`);
+    clients.forEach((_, client) => {
+        if (client.readyState === 1) client.send(packet);
+    });
+}
 
 wss.on("connection", (ws) => {
     ws.on("message", (data) => {
         const msg = data.toString().trim();
+        if (!msg) return;
 
         if (!clients.has(ws)) {
             clients.set(ws, msg);
-            broadcast(`  ${msg} joined the chat.`, ws);
+            // send the new user their own name and online count
+            ws.send(JSON.stringify({ type: "welcome", name: msg, online: clients.size }));
+            broadcastSystem(`${msg} joined the chat.`);
             return;
         }
 
         const name = clients.get(ws);
-        broadcast(`  ${name}: ${msg}`, ws);
+        broadcastMessage(name, msg);
     });
 
     ws.on("close", () => {
         const name = clients.get(ws);
         clients.delete(ws);
-        if (name) broadcast(`  ${name} left the chat.`, ws);
+        if (name) broadcastSystem(`${name} left the chat.`);
     });
 });
-
-function broadcast(message, sender) {
-    console.log(message);
-    clients.forEach((_, client) => {
-        if (client !== sender && client.readyState === 1) {
-            client.send(message);
-        }
-    });
-}
 
 server.listen(PORT, () => console.log(`SecureChat server running on port ${PORT}`));
