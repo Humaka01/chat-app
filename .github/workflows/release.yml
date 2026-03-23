@@ -5,9 +5,12 @@ on:
         tags:
             - "v*"
 
+env:
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
     build:
-        runs-on: ubuntu-latest
+        runs-on: windows-latest
         permissions:
             contents: write
 
@@ -24,7 +27,7 @@ jobs:
               run: npm install
 
             - name: Build .exe
-              run: npx pkg client.js --targets node18-win-x64 --output dist/SecureChat.exe
+              run: npx pkg client.js --targets node18-win-x64 --output dist/SecureChat.exe --icon icon.ico
 
             - name: Create GitHub Release
               uses: softprops/action-gh-release@v2

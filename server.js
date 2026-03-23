@@ -6,7 +6,7 @@ const PORT = process.env.PORT || 3000;
 const bootstrap = {
     servers: [
         {
-            name: "⚡ Main Server  —  securechat.railway.app",
+            name: "⚡ Main Server",
             url: "wss://chat-app-production-1ce9.up.railway.app",
         },
     ],
