@@ -4,7 +4,7 @@
     "main": "server.js",
     "scripts": {
         "start": "node server.js",
-        "build": "pkg client.js --targets node18-win-x64 --output dist/SecureChat.exe",
+        "build": "pkg client.js --targets node18-win-x64 --output dist/SecureChat.exe --icon icon.ico",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "repository": {

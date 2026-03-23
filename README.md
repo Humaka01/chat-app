@@ -16,7 +16,7 @@ A terminal-based encrypted chat application built with Node.js and WebSockets.
 
 ## Getting Started
 
-### Option 1 — Download the .exe (Windows)
+### Option 1: Download the .exe (Windows)
 
 1. Go to [Releases](https://github.com/Humaka01/chat-app/releases)
 2. Download `SecureChat.exe` from the latest release
@@ -24,7 +24,7 @@ A terminal-based encrypted chat application built with Node.js and WebSockets.
 
 > **Note:** Windows may show a SmartScreen warning saying "Windows protected your PC". This is expected for unsigned open source apps. Click **"More info"** → **"Run anyway"** to proceed.
 
-### Option 2 — Run from source
+### Option 2: Run from source
 
 **Requirements:** Node.js v18 or higher
 

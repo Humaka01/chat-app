@@ -24,15 +24,18 @@ const USER_COLORS = [
     "\x1b[38;5;228m", // yellow
     "\x1b[38;5;171m", // purple
     "\x1b[38;5;203m", // coral
+    "\x1b[38;5;51m", // bright cyan
+    "\x1b[38;5;208m", // deep orange
+    "\x1b[38;5;155m", // lime
+    "\x1b[38;5;219m", // light pink
 ];
 
 const colorMap = new Map();
 
 function colorFor(name) {
     if (!colorMap.has(name)) {
-        let hash = 0;
-        for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) % USER_COLORS.length;
-        colorMap.set(name, USER_COLORS[hash]);
+        const color = USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)];
+        colorMap.set(name, color);
     }
     return colorMap.get(name);
 }
