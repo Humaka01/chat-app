@@ -34,7 +34,10 @@ const colorMap = new Map();
 
 function colorFor(name) {
     if (!colorMap.has(name)) {
-        const color = USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)];
+        const usedColors = new Set(colorMap.values());
+        const available = USER_COLORS.filter((c) => !usedColors.has(c));
+        const pool = available.length > 0 ? available : USER_COLORS;
+        const color = pool[Math.floor(Math.random() * pool.length)];
         colorMap.set(name, color);
     }
     return colorMap.get(name);
