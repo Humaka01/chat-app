@@ -163,7 +163,8 @@ function askName() {
     });
 }
 
-function startChat(serverUrl, motd, myName) {
+function startChat(serverUrl, motd, _myName) {
+    let myName = _myName;
     let onlineCount = 1;
     let reconnectAttempts = 0;
     let hasConnectedBefore = false;
@@ -220,7 +221,17 @@ function startChat(serverUrl, motd, myName) {
             }
 
             if (packet.online !== undefined) onlineCount = packet.online;
+
             if (packet.type === "welcome") return;
+
+            if (packet.type === "name_taken") {
+                print(C.red + "  Username is already taken. Please choose another." + C.reset);
+                askName().then((newName) => {
+                    myName = newName;
+                    ws.send(newName);
+                });
+                return;
+            }
 
             if (packet.type === "system") {
                 print(

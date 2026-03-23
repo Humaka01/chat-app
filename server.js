@@ -48,6 +48,11 @@ wss.on("connection", (ws) => {
         if (!msg) return;
 
         if (!clients.has(ws)) {
+            const nameTaken = [...clients.values()].includes(msg);
+            if (nameTaken) {
+                ws.send(JSON.stringify({ type: "name_taken" }));
+                return;
+            }
             clients.set(ws, msg);
             // send the new user their own name and online count
             ws.send(JSON.stringify({ type: "welcome", name: msg, online: clients.size }));
