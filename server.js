@@ -23,25 +23,23 @@ const wss = new WebSocketServer({ server });
 const clients = new Map();
 
 wss.on("connection", (ws) => {
-    ws.send("Welcome! Type your name: ");
-
     ws.on("message", (data) => {
         const msg = data.toString().trim();
 
         if (!clients.has(ws)) {
             clients.set(ws, msg);
-            broadcast(`${msg} joined the chat!`, ws);
+            broadcast(`  ${msg} joined the chat.`, ws);
             return;
         }
 
         const name = clients.get(ws);
-        broadcast(`${name}: ${msg}`, ws);
+        broadcast(`  ${name}: ${msg}`, ws);
     });
 
     ws.on("close", () => {
         const name = clients.get(ws);
         clients.delete(ws);
-        if (name) broadcast(`${name} left the chat.`, ws);
+        if (name) broadcast(`  ${name} left the chat.`, ws);
     });
 });
 
@@ -54,4 +52,4 @@ function broadcast(message, sender) {
     });
 }
 
-server.listen(PORT, () => console.log(`Chat server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`SecureChat server running on port ${PORT}`));
