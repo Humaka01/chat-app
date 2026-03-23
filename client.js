@@ -15,7 +15,6 @@ const C = {
     red: "\x1b[31m",
 };
 
-// Vivid color palette for usernames — no faint colors, no eye-burners
 const USER_COLORS = [
     "\x1b[38;5;81m", // sky blue
     "\x1b[38;5;214m", // orange
@@ -136,12 +135,6 @@ function askName() {
 function startChat(serverUrl, motd, myName) {
     let onlineCount = 1;
 
-    function renderHeader() {
-        // re-render just the status line in place
-        process.stdout.clearLine(0);
-        process.stdout.cursorTo(0);
-    }
-
     function drawChatHeader() {
         header(`Connected as ${myName}  •  ${onlineCount} online`);
         console.log(C.green + "  ✔  " + motd + C.reset);
@@ -165,6 +158,9 @@ function startChat(serverUrl, motd, myName) {
 
         rl.on("line", (input) => {
             const text = input.trim();
+            // erase the line the user just typed so it doesn't stay visible
+            process.stdout.moveCursor(0, -1);
+            process.stdout.clearLine(0);
             if (text === "/quit") {
                 print(C.gray + "  Disconnecting..." + C.reset);
                 ws.close();
@@ -184,13 +180,9 @@ function startChat(serverUrl, motd, myName) {
             return;
         }
 
-        // update online count
         if (packet.online !== undefined) onlineCount = packet.online;
 
-        if (packet.type === "welcome") {
-            // silently accepted
-            return;
-        }
+        if (packet.type === "welcome") return;
 
         if (packet.type === "system") {
             print(
@@ -202,12 +194,10 @@ function startChat(serverUrl, motd, myName) {
 
         if (packet.type === "message") {
             const color = colorFor(packet.name);
-            const isMe = packet.name === myName;
             const nameTag = C.bold + color + packet.name + C.reset;
-            const msgText = isMe
-                ? C.white + packet.text + C.reset
-                : C.white + packet.text + C.reset;
-            print(`${timestamp()}  ${nameTag}${C.gray}:${C.reset} ${msgText}`);
+            print(
+                `${timestamp()}  ${nameTag}${C.gray}:${C.reset} ${C.white + packet.text + C.reset}`,
+            );
             prompt(myName);
             return;
         }
