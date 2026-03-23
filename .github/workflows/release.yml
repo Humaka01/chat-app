@@ -16,15 +16,18 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
 
             - name: Setup Node.js
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: 18
 
             - name: Install dependencies
               run: npm install
+
+            - name: Install rcedit
+              run: npm install -g rcedit
 
             - name: Build .exe
               run: npx pkg client.js --targets node18-win-x64 --output dist/SecureChat.exe --icon icon.ico
